@@ -111,11 +111,9 @@ export default {
     this.subscriptions.add(atom.commands.add('.tree-view .file .name', {
         'atom-mocha:runTestFile': function(){
             let filePath = this.getAttribute("data-path");
-            console.log(`old path: ${filePath}`)
             if(isSrcPath(filePath)) {
               filePath = replaceSrcPathWithTestPath(filePath)
             }
-            console.log(`new path: ${filePath}`)
             that.restartRuntimeWithFile(filePath);
         }
     }));
