@@ -38,6 +38,17 @@ function parseEnvironmentVariables(variables){
     }, {});
 }
 
+function isSrcPath(path) {
+  return path.includes('/src/')
+}
+
+function replaceSrcPathWithTestPath(path) {
+  let newPath = path;
+  newPath = newPath.replace('/src/', '/test/')
+  newPath = newPath.replace('.js', '.spec.js')
+  return newPath
+}
+
 export default {
   config : {
       compiler: {
@@ -88,7 +99,10 @@ export default {
             const activePaneItem = atom.workspace.getActivePaneItem();
             const buffer = activePaneItem ? activePaneItem.buffer : null;
             const file = buffer ? buffer.file : null;
-            const path = file ? file.path : null;
+            let path = file ? file.path : null;
+            if(isSrcPath(path)) {
+              path = replaceSrcPathWithTestPath(path)
+            }
             if(path){
                 that.restartRuntimeWithFile(path);
             }
@@ -96,13 +110,12 @@ export default {
     }));
     this.subscriptions.add(atom.commands.add('.tree-view .file .name', {
         'atom-mocha:runTestFile': function(){
-            const filePath = this.getAttribute("data-path");
-            that.restartRuntimeWithFile(filePath);
-        }
-    }));
-    this.subscriptions.add(atom.commands.add('.tree-view .file .name', {
-        'atom-mocha:runTestFile': function(){
-            const filePath = this.getAttribute("data-path");
+            let filePath = this.getAttribute("data-path");
+            console.log(`old path: ${filePath}`)
+            if(isSrcPath(filePath)) {
+              filePath = replaceSrcPathWithTestPath(filePath)
+            }
+            console.log(`new path: ${filePath}`)
             that.restartRuntimeWithFile(filePath);
         }
     }));
@@ -118,7 +131,11 @@ export default {
       this.runtime.clearFiles();
       readdir(folderPath).then((files) => {
           Promise.all(files.map(file => {
-              return this.addFileOrFolderToRuntime(path.join(folderPath, file));
+              let filePath =path.join(folderPath, file); 
+              if(isSrcPath(filePath)) {
+                filePath = replaceSrcPathWithTestPath(filePath)
+              }
+              return this.addFileOrFolderToRuntime(filePath);
           })).then( () => {
               this.runtime.start();
           });
