@@ -129,7 +129,7 @@ export default {
       this.runtime.clearFiles();
       readdir(folderPath).then((files) => {
           Promise.all(files.map(file => {
-              let filePath =path.join(folderPath, file); 
+              let filePath = path.join(folderPath, file); 
               if(isSrcPath(filePath)) {
                 filePath = replaceSrcPathWithTestPath(filePath)
               }
@@ -139,12 +139,24 @@ export default {
           });
       });
   },
-  addFileOrFolderToRuntime(file){
-      return stat(file).then( (result)=> {
+  addFileOrFolderToRuntime(_file){
+      return stat(_file).then( (result)=> {
           if(result.isDirectory()){
-              return;
+              let folderPath = _file
+              return readdir(folderPath).then((files) => {
+                  Promise.all(files.map(file => {
+                      let filePath = path.join(folderPath, file); 
+                      if(isSrcPath(filePath)) {
+                        filePath = replaceSrcPathWithTestPath(filePath)
+                      }
+                      console.log("adding a nested file", filePath);
+                      return this.runtime.addFile(filePath);
+                      // return this.addFileOrFolderToRuntime(filePath);
+                  }))
+              })
+          } else {
+            this.runtime.addFile(_file);
           }
-          this.runtime.addFile(file);
       });
   },
   restartRuntimeWithFile(filePath){
