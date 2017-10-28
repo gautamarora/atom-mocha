@@ -3,6 +3,10 @@
   "main": "./lib/atom-mocha",
   "version": "0.0.12",
   "description": "Mocha testrunner for atom",
+  "scripts": {
+    "build": "gulp default",
+    "dev": "gulp watch"
+  },
   "keywords": [
     "mocha",
     "test",

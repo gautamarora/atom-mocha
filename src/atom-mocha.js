@@ -116,20 +116,35 @@ export default {
   restartRuntimeWithFolder(folderPath){
       this.modalPanel.show();
       this.runtime.clearFiles();
-      readdir(folderPath).then((files) => {
-          Promise.all(files.map(file => {
-              return this.addFileOrFolderToRuntime(path.join(folderPath, file));
-          })).then( () => {
+      // readdir(folderPath).then((files) => {
+      //     Promise.all(files.map(file => {
+      //         return this.addFileOrFolderToRuntime(path.join(folderPath, file));
+      //     })).then( () => {
+      //         this.runtime.start();
+      //     });
+      // });
+      this.addFileOrFolderToRuntime(path.join(folderPath))
+          .then( () => {
+              console.log("starting runtime...")
               this.runtime.start();
           });
-      });
   },
-  addFileOrFolderToRuntime(file){
-      return stat(file).then( (result)=> {
+  addFileOrFolderToRuntime(filePath){
+      return stat(filePath).then( (result)=> {
           if(result.isDirectory()){
-              return;
+              let folderPath = filePath;
+              readdir(folderPath).then((files) => {
+                  Promise.all(files.map(file => {
+                      let filePath = path.join(folderPath, file); 
+                      console.log(`adding ${filePath} in dir`)
+                      // return this.runtime.addFile(filePath);
+                      this.addFileOrFolderToRuntime(filePath);
+                  }));
+              })
+          } else {
+            console.log(`adding ${filePath}`)
+            return this.runtime.addFile(filePath);
           }
-          this.runtime.addFile(file);
       });
   },
   restartRuntimeWithFile(filePath){
